@@ -1,69 +1,120 @@
 <STWidget>:
     orientation: 'vertical'
-    BoxLayout:
-        orientation: 'vertical'
+    Carousel:
         BoxLayout:
             orientation: 'vertical'
             Label:
                 text_size: self.size
+                padding_x: 10
+                font_size: '20sp'
                 valign: 'middle'
                 halign: 'left'
                 text: 'Lights control'
                 size_hint_y: 0.1
+                canvas.before:
+                    Color:
+                        rgba: 0.059, 0.220, 0.346, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
             BoxLayout:
                 orientation: 'horizontal'
+                size_hint_y: 0.8
                 BoxLayout:
                     orientation: 'vertical'
                     Button:
                         text: 'full'
-                        font_size: 24
+                        font_size: '22sp'
                         id: a_100
                         on_release: root.light_chn_upd(0, 100)
                     Button:
                         text: '70%'
-                        font_size: 24
+                        font_size: '22sp'
                         id: a_70
                         on_release: root.light_chn_upd(0, 70)
                     Button:
                         text: '40%'
-                        font_size: 24
+                        font_size: '22sp'
                         id: a_40
                         on_release: root.light_chn_upd(0, 40)
                     Button:
                         text: '20%'
-                        font_size: 24
+                        font_size: '22sp'
                         id: a_20
                         on_release: root.light_chn_upd(0, 20)
                     Button:
                         text: 'off'
-                        font_size: 24
+                        font_size: '22sp'
                         id: a_0
                         on_release: root.light_chn_upd(0, 0)
                 BoxLayout:
                     orientation: 'vertical'
                     Button:
                         text: 'full'
-                        font_size: 24
+                        font_size: '22sp'
                         id: b_100
                         on_release: root.light_chn_upd(1, 100)
                     Button:
                         text: '70%'
-                        font_size: 24
+                        font_size: '22sp'
                         id: b_70
                         on_release: root.light_chn_upd(1, 70)
                     Button:
                         text: '40%'
-                        font_size: 24
+                        font_size: '24sp'
                         id: a_40
                         on_release: root.light_chn_upd(1, 40)
                     Button:
                         text: '20%'
-                        font_size: 24
+                        font_size: '22sp'
                         id: a_20
                         on_release: root.light_chn_upd(1, 20)
                     Button:
                         text: 'off'
-                        font_size: 24
+                        font_size: '22sp'
                         id: a_0
                         on_release: root.light_chn_upd(1, 0)
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.1
+                ToggleButton:
+                    size_hint_x: 0.15
+                    text: 'Ch1'
+                    group: 'a'
+                ToggleButton:
+                    size_hint_x: 0.15
+                    text: 'Ch2'
+                    group: 'a'
+                    state: 'down'
+                Slider:
+                    size_hint_x: 0.7
+                    min: 0
+                    max: 100
+                    value: 20
+        BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text_size: self.size
+                padding_x: 10
+                size_hint_y: 0.1
+                font_size: '20sp'
+                valign: 'middle'
+                halign: 'left'
+                text: 'Event log'
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 0.22
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+            Label:
+                size_hint_y: 0.9
+                text_size: self.size
+                padding_x: 10
+                font_size: '12sp'
+                valign: 'top'
+                halign: 'left'
+                text: 'Event#1'
+                id: eventlog
+
                 
