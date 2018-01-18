@@ -80,6 +80,7 @@ class STWidget(BoxLayout):                      #root widget class - main functi
         """
         self.s_data = socket_data()                      #socket data
         self.s_conn = socket_connection()                #socket connection
+        self.ids.eventlog.text = 'LightsCtrl v 0.1\n--------------------------'
 
     def light_update(self, duties):
         """
