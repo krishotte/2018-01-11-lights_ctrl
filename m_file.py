@@ -20,8 +20,12 @@ class ini:
         """
         dir_path = path.dirname(path.realpath(__file__))
         print('working directory: ', dir_path)
-        with io.open(path.join(dir_path, file1)) as data_file:
-            data_loaded = json.load(data_file)
+        try:
+            with io.open(path.join(dir_path, file1)) as data_file:
+                data_loaded = json.load(data_file)
+        except:
+            data_loaded = {'host': '10.10.10.1', 'port': 8003}          #returns default
+            print('error reading file, using default: ', data_loaded)
         return data_loaded
     def write(self, file1, data):
         """

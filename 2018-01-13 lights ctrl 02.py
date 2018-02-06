@@ -56,33 +56,35 @@ class STWidget(BoxLayout):                      #root widget class - main functi
             count += 1
             duties = []
             pwms = []
-            self.s_conn.connect()
-            self.s_conn.client_socket.send(sockstr)                     #get current setup
-            self.recv1 = self.s_conn.client_socket.recv(32)
-            self.curr_setup = self.s_data.deconstr(self.recv1)
-            print('received: ', self.recv1, '; ', self.curr_setup)      #print current setup
-            for i in range(0, 4):
-                if chn == i:
-                    duties.append(duty)
+            status = self.s_conn.connect()
+            if status == True:
+                self.s_conn.client_socket.send(sockstr)                     #get current setup
+                self.recv1 = self.s_conn.client_socket.recv(32)
+                self.curr_setup = self.s_data.deconstr(self.recv1)
+                print('received: ', self.recv1, '; ', self.curr_setup)      #print current setup
+                for i in range(0, 4):
+                    if chn == i:
+                        duties.append(duty)
+                    else:
+                        duties.append(self.curr_setup[2][i])
+                print('duties to update: ', duties)
+                sockstr = self.s_data.constr(2, chn, duties)
+                print('sockstr to send: ', sockstr)
+                self.s_conn.client_socket.send(sockstr)                     #update current setup
+                self.recv1 = self.s_conn.client_socket.recv(32)             #get updated setup
+                self.curr_setup = self.s_data.deconstr(self.recv1)
+                print('updated setup received: ', self.recv1, '; ', self.curr_setup)
+                print('--pwms: ', self.s_data.pwms)
+                if (self.curr_setup[0] == 3) and (self.curr_setup[2] == self.s_data.duties):
+                    sockstr = self.s_data.constr(5, 0, [0, 0, 0, 0])
+                    self.s_conn.client_socket.send(sockstr)
+                    print('success sent: ', sockstr)
+                    done = True
                 else:
-                    duties.append(self.curr_setup[2][i])
-            print('duties to update: ', duties)
-            sockstr = self.s_data.constr(2, chn, duties)
-            print('sockstr to send: ', sockstr)
-            self.s_conn.client_socket.send(sockstr)                     #update current setup
-            self.recv1 = self.s_conn.client_socket.recv(32)             #get updated setup
-            self.curr_setup = self.s_data.deconstr(self.recv1)
-            print('updated setup received: ', self.recv1, '; ', self.curr_setup)
-            print('--pwms: ', self.s_data.pwms)
-            if (self.curr_setup[0] == 3) and (self.curr_setup[2] == self.s_data.duties):
-                sockstr = self.s_data.constr(5, 0, [0, 0, 0, 0])
-                self.s_conn.client_socket.send(sockstr)
-                print('success sent: ', sockstr)
-                done = True
+                    print("duties do not match, again")
+                self.s_conn.disconnect()
             else:
-                print("duties do not match, again")
-            self.s_conn.disconnect()
-
+                pass
     def test(self):            
         """
         testing class

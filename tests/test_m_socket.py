@@ -19,3 +19,9 @@ print("pwms: ", s_data.pwms)
 
 if duties_back[2] == duties:
     print("constr, deconstr success")
+print('-------------------------------')
+
+s_conn = m_socket.socket_connection()
+s_conn.load_conf(path1)
+status = s_conn.connect()
+print('connection status: ', status)

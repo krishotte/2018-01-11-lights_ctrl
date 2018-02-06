@@ -47,22 +47,25 @@ class socket_connection:
     """
     def __init__(self):
         #self.ip = '192.168.12.101'
-        #self.ip = '192.168.2.215' #'192.168.64.108' #'5CG6085LLT' #'192.168.64.107'
         #self.port = 8003
         self.ini = m_file.ini()
-        #self.conf = self.ini.read(path.join(data_dir, 'conf.json'))
-        #print(path.join(data_dir, 'conf.json'))
-        #self.conf = self.ini.read('conf.json')
-        #self.ip = self.conf['host']
-        #self.port = self.conf['port']
     def load_conf(self, data_dir):
+        'loads configuration from conf.json file'
         self.conf = self.ini.read(path.join(data_dir, 'conf.json'))
         print(path.join(data_dir, 'conf.json'))
         self.ip = self.conf['host']
         self.port = self.conf['port']
     def connect(self):
+        'creates socket connection'
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect((self.ip, self.port))
+        self.status = False
+        try:
+            self.client_socket.connect((self.ip, self.port))
+            self.status = True
+        except:
+            print('connection error, could not connect')
+            self.status = False
+        return self.status
     def disconnect(self):
         self.client_socket.close()
     def reconnect(self):
