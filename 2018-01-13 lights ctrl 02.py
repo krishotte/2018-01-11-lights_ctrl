@@ -1,8 +1,9 @@
 # socket controlled lights
-# simple kivy app for controll
+# simple kivy app for control
 import socket
 import m_file
 import m_socket
+import m_logger
 
 from kivy.app import App
 
@@ -15,43 +16,32 @@ from kivy.uix.carousel import Carousel
 
 class STWidget(BoxLayout):                      #root widget class - main functionality - GUI
     def open(self):                             #inits plots
-        """
-        initializes main widget class
-        """
-        self.s_data = m_socket.socket_data() #socket_data()                      #socket data
-        self.s_conn = m_socket.socket_connection() #socket_connection()                #socket connection
-        self.ids.eventlog.text = 'LightsCtrl v 0.1\n--------------------------'
-
+        "initializes main widget class"
+        self.s_data = m_socket.socket_data()            #socket data
+        self.s_conn = m_socket.socket_connection()      #socket connection
+        self.log1 = m_logger.log(25)
+        self.ids.eventlog.text = self.log1.addline('LightsCtrl v 0.1\n--------------------------')
+        
     def light_update(self, duties):
-        """
-        obsolete function for basic lights control
-        """
+        "obsolete function for basic lights control"
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect(('192.168.2.218', 8001))
         self.client_socket.send(duties)
         self.client_socket.close()
 
-    def light_update_cmd(self, chn, duty):
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect(('192.168.2.218', 8001))
-        #self.cur_setup = self.client_socket.recv(8)
-        self.client_socket.send(duty)
-        self.client_socket.close()
-
     def light_setup_get(self):                  #gets current ESP32 chn setup
+        'TODO'
         self.client_socket.connect(('192.168.2.218', 8001))
         self.s_data.constr(1, 0, [100, 70, 50, 20])
         self.curr_setup = self.client_socket.recv(32)
 
     def light_chn_upd(self, chn, duty):
-        """
-        update lighting level for single channel
-        """
+        "update lighting level for single channel"
         done = False
         count = 0
         sockstr = self.s_data.constr(1, 0, [0, 0, 0, 0])        #command to get current setup
-        print('-------------------------------------------')
-        print('current setup request: ', sockstr)
+        self.ids.eventlog.text = self.log1.addline('-------------------------------------------')
+        self.ids.eventlog.text = self.log1.addline('current setup request: ' + str(sockstr))
         while done == False and count < 3:
             count += 1
             duties = []
@@ -61,30 +51,30 @@ class STWidget(BoxLayout):                      #root widget class - main functi
                 self.s_conn.client_socket.send(sockstr)                     #get current setup
                 self.recv1 = self.s_conn.client_socket.recv(32)
                 self.curr_setup = self.s_data.deconstr(self.recv1)
-                print('received: ', self.recv1, '; ', self.curr_setup)      #print current setup
+                self.ids.eventlog.text = self.log1.addline('received: ' + str(self.recv1) + '; ' + str(self.curr_setup))      #print current setup
                 for i in range(0, 4):
                     if chn == i:
                         duties.append(duty)
                     else:
                         duties.append(self.curr_setup[2][i])
-                print('duties to update: ', duties)
+                self.ids.eventlog.text = self.log1.addline('duties to update: ' + str(duties))
                 sockstr = self.s_data.constr(2, chn, duties)
-                print('sockstr to send: ', sockstr)
+                self.ids.eventlog.text = self.log1.addline('sockstr to send: ' + str(sockstr))
                 self.s_conn.client_socket.send(sockstr)                     #update current setup
                 self.recv1 = self.s_conn.client_socket.recv(32)             #get updated setup
                 self.curr_setup = self.s_data.deconstr(self.recv1)
-                print('updated setup received: ', self.recv1, '; ', self.curr_setup)
-                print('--pwms: ', self.s_data.pwms)
+                self.ids.eventlog.text = self.log1.addline('updated setup received: ' + str(self.recv1) + '; ' + str(self.curr_setup))
+                self.ids.eventlog.text = self.log1.addline('--pwms: ' + str(self.s_data.pwms))
                 if (self.curr_setup[0] == 3) and (self.curr_setup[2] == self.s_data.duties):
                     sockstr = self.s_data.constr(5, 0, [0, 0, 0, 0])
                     self.s_conn.client_socket.send(sockstr)
-                    print('success sent: ', sockstr)
+                    self.ids.eventlog.text = self.log1.addline('success sent: ' + str(sockstr))
                     done = True
                 else:
-                    print("duties do not match, again")
+                    self.ids.eventlog.text = self.log1.addline("duties do not match, again")
                 self.s_conn.disconnect()
             else:
-                pass
+                self.ids.eventlog.text = self.log1.addline('could not connect, check network config')
     def test(self):            
         """
         testing class
