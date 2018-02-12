@@ -20,7 +20,7 @@ class STWidget(BoxLayout):                      #root widget class - main functi
         self.s_data = m_socket.socket_data()            #socket data
         self.s_conn = m_socket.socket_connection()      #socket connection
         self.log1 = m_logger.log(25)
-        self.ids.eventlog.text = self.log1.addline('LightsCtrl v 0.1\n--------------------------')
+        self.ids.eventlog.text = self.log1.addline('LightsCtrl v 0.2\n--------------------------')
         
     def light_update(self, duties):
         "obsolete function for basic lights control"
@@ -31,9 +31,12 @@ class STWidget(BoxLayout):                      #root widget class - main functi
 
     def light_setup_get(self):                  #gets current ESP32 chn setup
         'TODO'
-        self.client_socket.connect(('192.168.2.218', 8001))
-        self.s_data.constr(1, 0, [100, 70, 50, 20])
-        self.curr_setup = self.client_socket.recv(32)
+        status = self.s_conn.connect()
+        sockstr = self.s_data.constr(1, 0, [100, 70, 50, 20])
+        if status == True:
+                self.s_conn.client_socket.send(sockstr)                     #get current setup
+                self.recv1 = self.s_conn.client_socket.recv(32)
+                self.curr_setup = self.s_data.deconstr(self.recv1)
 
     def light_chn_upd(self, chn, duty):
         "update lighting level for single channel"

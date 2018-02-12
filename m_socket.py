@@ -52,12 +52,13 @@ class socket_connection:
     def load_conf(self, data_dir):
         'loads configuration from conf.json file'
         self.conf = self.ini.read(path.join(data_dir, 'conf.json'))
-        print(path.join(data_dir, 'conf.json'))
+        print('loading conf: ', path.join(data_dir, 'conf.json'))
         self.ip = self.conf['host']
         self.port = self.conf['port']
     def connect(self):
         'creates socket connection'
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.settimeout(2)
         self.status = False
         try:
             self.client_socket.connect((self.ip, self.port))
