@@ -15,11 +15,11 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.carousel import Carousel
 
 class STWidget(BoxLayout):                      #root widget class - main functionality - GUI
-    def open(self):                             #inits plots
+    def open(self):                             #inits app
         "initializes main widget class"
         self.s_data = m_socket.socket_data()            #socket data
         self.s_conn = m_socket.socket_connection()      #socket connection
-        self.log1 = m_logger.log(25)
+        self.log1 = m_logger.log(25)                    #inits logger
         self.ids.eventlog.text = self.log1.addline('LightsCtrl v 0.2\n--------------------------')
         
     def light_update(self, duties):

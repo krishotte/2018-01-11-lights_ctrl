@@ -58,7 +58,7 @@ class socket_connection:
     def connect(self):
         'creates socket connection'
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.settimeout(2)
+        self.client_socket.settimeout(4)
         self.status = False
         try:
             self.client_socket.connect((self.ip, self.port))
