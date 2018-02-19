@@ -1,5 +1,6 @@
 <STWidget>:
     orientation: 'vertical'
+    elog: eventlog
     Carousel:
         BoxLayout:
             orientation: 'vertical'
@@ -81,6 +82,7 @@
                     size_hint_x: 0.15
                     text: 'Ch1'
                     group: 'a'
+                    on_release: root.test()
                 ToggleButton:
                     size_hint_x: 0.15
                     text: 'Ch2'
@@ -94,7 +96,7 @@
         BoxLayout:
             orientation: 'vertical'
             Label:
-                text_size: self.size
+                #text_size: self.size
                 padding_x: 10
                 size_hint_y: 0.1
                 font_size: '20sp'
@@ -112,9 +114,9 @@
                 text_size: self.size
                 padding_x: 10
                 font_size: '12sp'
-                valign: 'top'
+                valign: 'bottom'
                 halign: 'left'
-                text: 'Event#1'
+                text: 'Event#1' + str(self.texture_size)
                 id: eventlog
 
                 

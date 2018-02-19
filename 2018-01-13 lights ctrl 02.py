@@ -13,8 +13,10 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.carousel import Carousel
+from kivy.properties import ObjectProperty
 
 class STWidget(BoxLayout):                      #root widget class - main functionality - GUI
+    elog = ObjectProperty()
     def open(self):                             #inits app
         "initializes main widget class"
         self.s_data = m_socket.socket_data()            #socket data
@@ -42,6 +44,9 @@ class STWidget(BoxLayout):                      #root widget class - main functi
         "update lighting level for single channel"
         done = False
         count = 0
+        maxlines = self.elog.texture_size[1]//(self.elog.font_size*1.3)     #guess max log linecount
+        self.log1.max_lines = maxlines
+        print('eventlog maxlines: ', maxlines)
         sockstr = self.s_data.constr(1, 0, [0, 0, 0, 0])        #command to get current setup
         self.ids.eventlog.text = self.log1.addline('-------------------------------------------')
         self.ids.eventlog.text = self.log1.addline('current setup request: ' + str(sockstr))
@@ -84,18 +89,23 @@ class STWidget(BoxLayout):                      #root widget class - main functi
         """
         #sockstr = self.s_data.constr(1, 0, [100, 70, 50, 20])
         #print(sockstr)
-        sockstr = self.s_data.constr(2, 1, [100, 95, 80, 30])
+        #sockstr = self.s_data.constr(2, 1, [100, 95, 80, 30])
         #print(sockstr)
         #print(self.s_data.deconstr(sockstr))
         #
         #self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         #self.client_socket.connect(('5CG6085LLT', 8003))
-        self.s_conn.connect()
-        self.s_conn.client_socket.send(sockstr)
+        #self.s_conn.connect()
+        #self.s_conn.client_socket.send(sockstr)
         #self.recv1 = self.s_conn.client_socket.recv(32)
         #print('received: ', self.recv1)
-        self.s_conn.disconnect()
+        #self.s_conn.disconnect()
+        print('eventlog texturesize: ', self.elog.texture_size)
+        print('eventlog textsize: ', self.elog.text_size)
+        maxlines = self.elog.texture_size[1]//(self.elog.font_size*1.5)
+        print('eventlog max line count: ', maxlines)
         print('--------')
+        self.log1 = m_logger.log(maxlines)
         #self.light_chn_upd(1, 25)
 
 class Lights_Ctrl(App):                        #app class

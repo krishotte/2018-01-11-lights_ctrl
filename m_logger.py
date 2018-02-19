@@ -18,7 +18,8 @@ class log:
                 self.strg += '\n'
             self.strg += line
         else:
-            self.strg_list.pop(0)
+            while len(self.strg_list) >= self.max_lines: 
+                self.strg_list.pop(0)
             #print('newlength = ', len(self.strg_list))
             self.strg = ''
             for str1 in self.strg_list:

@@ -43,10 +43,10 @@ class socket_data:
         return (self.cmd, self.chn, self.duties)
 
 def net_conn():
-    ssid = 'vlmaba3'
-    passwd = 'pricintorine1320'
     #ssid = 'vlmaba3'
-    #passwd = ''
+    #passwd = 'pricintorine1320'
+    ssid = "UPC36FB557"
+    passwd = "aMj8kUumvck4"
 
     sta_if = network.WLAN(network.STA_IF)
     print('network active: ', sta_if.active())
@@ -57,7 +57,7 @@ def net_conn():
         i += 1
         sta_if.connect(ssid, passwd)
         print(sta_if.isconnected(), "i: ", i)
-        utime.sleep(1)
+        utime.sleep(2)
     print('is connected: ', sta_if.isconnected())
     if sta_if.isconnected() == True:
         psig.value(1)
