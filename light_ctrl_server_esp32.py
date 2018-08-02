@@ -43,10 +43,13 @@ class socket_data:
         return (self.cmd, self.chn, self.duties)
 
 def net_conn():
+    """
+    connect to network function
+    """
     #ssid = 'vlmaba3'
     #passwd = 'pricintorine1320'
-    ssid = "UPC36FB557"
-    passwd = "aMj8kUumvck4"
+    ssid = "UPC5515895"
+    passwd = "hsa8de6yrxGh"
 
     sta_if = network.WLAN(network.STA_IF)
     print('network active: ', sta_if.active())
@@ -70,10 +73,12 @@ duty1 = 10
 pwm_freq = 5000
 p0 = machine.PWM(machine.Pin(12), freq=pwm_freq)
 p1 = machine.PWM(machine.Pin(14), freq=pwm_freq)
-p0.duty(duty0*1024//100)
-p1.duty(duty1*1024//100)
-psig = machine.Pin(2, machine.Pin.OUT)
-psig.value(0)
+p0.duty(duty0*1023//100)
+p1.duty(duty1*1023//100)
+#psig = machine.Pin(2, machine.Pin.OUT)
+#psig.value(0)
+psig = machine.PWM(machine.Pin(2), freq=pwm_freq)
+psig.duty(100)
 my_ip = net_conn()
 print('my ip: ', my_ip)
 
@@ -119,8 +124,8 @@ while True:     #main loop
                 elif cmd1 == 2:
                     duty0 = duties[0]
                     duty1 = duties[1]
-                    p0.duty(duty0*1024//100)
-                    p1.duty(duty1*1024//100)
+                    p0.duty(duty0*1023//100)
+                    p1.duty(duty1*1023//100)
                     str2 = sdata.constr(3, 0, [duty0, duty1, 0, 0])    
                     clientsocket.send(str2) #b'0x30x00x00x00xdd0xb20x7f0xaa')
                 elif cmd1 == 5:
