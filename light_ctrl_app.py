@@ -17,6 +17,7 @@ from kivy.properties import ObjectProperty
 
 class STWidget(BoxLayout):                      #root widget class - main functionality - GUI
     elog = ObjectProperty()
+    sldr = ObjectProperty()
     def open(self):                             #inits app
         "initializes main widget class"
         self.s_data = m_socket.socket_data()            #socket data
@@ -32,9 +33,9 @@ class STWidget(BoxLayout):                      #root widget class - main functi
         self.client_socket.close()
 
     def light_setup_get(self):                  #gets current ESP32 chn setup
-        'TODO'
+        "gets current configuration"
         status = self.s_conn.connect()
-        sockstr = self.s_data.constr(1, 0, [100, 70, 50, 20])
+        sockstr = self.s_data.constr(1, 0, [0, 0, 0, 0])
         if status == True:
                 self.s_conn.client_socket.send(sockstr)                     #get current setup
                 self.recv1 = self.s_conn.client_socket.recv(32)
@@ -46,7 +47,7 @@ class STWidget(BoxLayout):                      #root widget class - main functi
         count = 0
         maxlines = self.elog.texture_size[1]//(self.elog.font_size*1.3)     #guess max log linecount
         self.log1.max_lines = maxlines
-        print('eventlog maxlines: ', maxlines)
+        #print('eventlog maxlines: ', maxlines)
         sockstr = self.s_data.constr(1, 0, [0, 0, 0, 0])        #command to get current setup
         self.ids.eventlog.text = self.log1.addline('-------------------------------------------')
         self.ids.eventlog.text = self.log1.addline('current setup request: ' + str(sockstr))
@@ -83,6 +84,27 @@ class STWidget(BoxLayout):                      #root widget class - main functi
                 self.s_conn.disconnect()
             else:
                 self.ids.eventlog.text = self.log1.addline('could not connect, check network config')
+    
+    def slider_update(self):
+        "updates slider value according to toggle button pressed"
+        self.light_setup_get()
+        self.TGlBtn = -1
+        print("curr setup: ", str(self.curr_setup))
+        if self.ids.TGlBtn1.state == 'down':
+            self.TGlBtn = 1
+        elif self.ids.TGlBtn2.state == 'down':
+            self.TGlBtn = 2
+        if self.TGlBtn > 0:
+            self.ids.sldr1.value = self.curr_setup[2][self.TGlBtn -1]
+            print('slider value: ', self.curr_setup[2][self.TGlBtn -1])
+        print('TGlBtn value: ', self.TGlBtn)
+
+    def slider_move(self):
+        "updates light intensity according to slider value"
+        #self.slider_update()
+        if self.TGlBtn > 0:
+            self.light_chn_upd(self.TGlBtn -1, int(self.ids.sldr1.value))
+
     def test(self):            
         """
         testing class
@@ -107,6 +129,12 @@ class STWidget(BoxLayout):                      #root widget class - main functi
         print('--------')
         self.log1 = m_logger.log(maxlines)
         #self.light_chn_upd(1, 25)
+    def test1(self):
+        print('sldr value: ', self.sldr.value)
+
+    def test2(self, val1):
+        self.ids.sldr1.value = val1
+        print("toggle button state: ", self.ids.TGlBtn1.state, ';', self.ids.TGlBtn2.state)
 
 class Lights_Ctrl(App):                        #app class
     def build(self):
