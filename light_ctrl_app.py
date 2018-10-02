@@ -40,6 +40,8 @@ class STWidget(BoxLayout):                      #root widget class - main functi
                 self.s_conn.client_socket.send(sockstr)                     #get current setup
                 self.recv1 = self.s_conn.client_socket.recv(32)
                 self.curr_setup = self.s_data.deconstr(self.recv1)
+        else:
+            self.curr_setup = (4, 0, [0, 0, 0, 0])
 
     def light_chn_upd(self, chn, duty):
         "update lighting level for single channel"
@@ -84,6 +86,7 @@ class STWidget(BoxLayout):                      #root widget class - main functi
                 self.s_conn.disconnect()
             else:
                 self.ids.eventlog.text = self.log1.addline('could not connect, check network config')
+            self.slider_update()
     
     def slider_update(self):
         "updates slider value according to toggle button pressed"

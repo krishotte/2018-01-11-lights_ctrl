@@ -1,3 +1,13 @@
+#:kivy 1.9.0
+<Button1@Button>:
+    font_size: '22sp'
+<Label1@Label>:
+    text_size: self.size
+    padding_x: 10
+    font_size: '20sp'
+    valign: 'middle'
+    halign: 'left'
+    size_hint_y: 0.1
 <STWidget>:
     orientation: 'vertical'
     elog: eventlog
@@ -5,14 +15,8 @@
     Carousel:
         BoxLayout:
             orientation: 'vertical'
-            Label:
-                text_size: self.size
-                padding_x: 10
-                font_size: '20sp'
-                valign: 'middle'
-                halign: 'left'
+            Label1:
                 text: 'Lights control'
-                size_hint_y: 0.1
                 canvas.before:
                     Color:
                         rgba: 0.059, 0.220, 0.346, 1
@@ -24,91 +28,68 @@
                 size_hint_y: 0.8
                 BoxLayout:
                     orientation: 'vertical'
-                    Button:
+                    size_hint_x: 0.4
+                    Button1:
                         text: 'full'
-                        font_size: '22sp'
-                        id: a_100
                         on_release: root.light_chn_upd(0, 100)
-                    Button:
+                    Button1:
                         text: '70%'
-                        font_size: '22sp'
-                        id: a_70
                         on_release: root.light_chn_upd(0, 70)
-                    Button:
+                    Button1:
                         text: '40%'
-                        font_size: '22sp'
-                        id: a_40
                         on_release: root.light_chn_upd(0, 40)
-                    Button:
+                    Button1:
                         text: '20%'
-                        font_size: '22sp'
-                        id: a_20
                         on_release: root.light_chn_upd(0, 20)
-                    Button:
+                    Button1:
                         text: 'off'
-                        font_size: '22sp'
-                        id: a_0
                         on_release: root.light_chn_upd(0, 0)
                 BoxLayout:
                     orientation: 'vertical'
-                    Button:
+                    size_hint_x: 0.4
+                    Button1:
                         text: 'full'
-                        font_size: '22sp'
-                        id: b_100
                         on_release: root.light_chn_upd(1, 100)
-                    Button:
+                    Button1:
                         text: '70%'
-                        font_size: '22sp'
-                        id: b_70
                         on_release: root.light_chn_upd(1, 70)
-                    Button:
+                    Button1:
                         text: '40%'
-                        font_size: '24sp'
-                        id: a_40
                         on_release: root.light_chn_upd(1, 40)
-                    Button:
+                    Button1:
                         text: '20%'
-                        font_size: '22sp'
-                        id: a_20
                         on_release: root.light_chn_upd(1, 20)
-                    Button:
+                    Button1:
                         text: 'off'
-                        font_size: '22sp'
-                        id: a_0
                         on_release: root.light_chn_upd(1, 0)
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: 0.1
-                ToggleButton:
-                    size_hint_x: 0.15
-                    text: 'Ch1'
-                    group: 'a'
-                    id: TGlBtn1
-                    on_release: root.slider_update()
-                ToggleButton:
-                    size_hint_x: 0.15
-                    text: 'Ch2'
-                    group: 'a'
-                    id: TGlBtn2
-                    state: 'down'
-                    on_release: root.slider_update()
-                Slider:
-                    size_hint_x: 0.7
-                    min: 0
-                    max: 100
-                    step: 2
-                    value: 20
-                    id: sldr1
-                    on_value: root.slider_move()
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.2
+                    ToggleButton:
+                        size_hint_y: 0.1
+                        text: 'Ch1'
+                        group: 'a'
+                        id: TGlBtn1
+                        on_release: root.slider_update()
+                    ToggleButton:
+                        size_hint_y: 0.1
+                        text: 'Ch2'
+                        group: 'a'
+                        id: TGlBtn2
+                        state: 'down'
+                        on_release: root.slider_update()
+                    Slider:
+                        orientation: 'vertical'
+                        size_hint_y: 0.8
+                        min: 0
+                        max: 100
+                        step: 2
+                        value: 20
+                        id: sldr1
+                        on_value: root.slider_move()
         BoxLayout:
             orientation: 'vertical'
-            Label:
-                #text_size: self.size
-                padding_x: 10
-                size_hint_y: 0.1
-                font_size: '20sp'
-                valign: 'middle'
-                halign: 'left'
+            Label1:
                 text: 'Event log'
                 canvas.before:
                     Color:
@@ -125,5 +106,4 @@
                 halign: 'left'
                 text: 'Event#1' + str(self.texture_size)
                 id: eventlog
-
-                
+               
