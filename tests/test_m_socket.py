@@ -23,5 +23,6 @@ print('-------------------------------')
 
 s_conn = m_socket.socket_connection()
 s_conn.load_conf(path1)
+print('connecting...')
 status = s_conn.connect()
 print('connection status: ', status)

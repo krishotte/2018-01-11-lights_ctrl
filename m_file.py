@@ -27,6 +27,7 @@ class ini:
         except:
             data_loaded = {'host': '10.10.10.1', 'port': 8003}          #returns default
             print('error reading file, using default: ', data_loaded)
+        print(data_loaded)
         return data_loaded
     def write(self, file1, data):
         """
