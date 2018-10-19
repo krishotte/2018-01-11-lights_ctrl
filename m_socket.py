@@ -61,6 +61,7 @@ class socket_connection:
         self.client_socket.settimeout(4)
         self.status = False
         try:
+            print('socket connecting...;' + self.ip + '; ' + str(self.port))
             self.client_socket.connect((self.ip, self.port))
             self.status = True
         except:
@@ -68,6 +69,7 @@ class socket_connection:
             self.status = False
         return self.status
     def disconnect(self):
+        print('socket disconnecting...')
         self.client_socket.close()
     def reconnect(self):
         pass
