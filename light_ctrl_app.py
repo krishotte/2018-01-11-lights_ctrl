@@ -73,6 +73,13 @@ class STWidget(FloatLayout):                      #root widget class - main func
             curr_setup = self.s_data.deconstr(recv1)
             self.ids.eventlog.text = self.log1.addline('receiving... ' + str(curr_setup))
             print('receiving... ' + str(curr_setup))
+            self.ids.eventlog.text = self.log1.addline('sending... ' + str(sockstr))
+            print('sending... ' + str(sockstr))
+            self.s_conn.client_socket.send(sockstr)
+            recv1 = self.s_conn.client_socket.recv(32)
+            curr_setup = self.s_data.deconstr(recv1)
+            self.ids.eventlog.text = self.log1.addline('receiving... ' + str(recv1))
+            print('receiving... ' + str(recv1))
         except:
             curr_setup = (4, 0, [0, 0, 0, 0])
             self.ids.eventlog.text = self.log1.addline('communication error')
@@ -81,6 +88,7 @@ class STWidget(FloatLayout):                      #root widget class - main func
     def light_setup_get(self):                  #gets current ESP32 chn setup
         "gets current configuration"
         status = self.s_conn.connect()
+        #sockstr = self.s_data.constr(1, 0, [0, 0, 0, 0])
         if status == True:
                 Clock.schedule_once(self.hide_disconn, 0)
                 Clock.schedule_once(self.show_conn, 0)
