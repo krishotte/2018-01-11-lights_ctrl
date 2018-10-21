@@ -22,7 +22,8 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from os import path
 
-file_path = path.dirname(path.realpath(__file__)) + '\\lights_ctrl.kv'
+file_path = path.join(path.dirname(path.realpath(__file__)), 'lights_ctrl.kv')
+#file_path = path.dirname(path.realpath(__file__)) + '\\lights_ctrl.kv'
 with open(file_path, encoding='utf-8') as f: # Note the name of the .kv 
     Builder.load_string(f.read())
 
