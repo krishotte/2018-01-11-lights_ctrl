@@ -21,6 +21,8 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
 from os import path
+from kivy.uix.relativelayout import RelativeLayout
+from kivy.properties import StringProperty
 
 file_path = path.join(path.dirname(path.realpath(__file__)), 'lights_ctrl.kv')
 #file_path = path.dirname(path.realpath(__file__)) + '\\lights_ctrl.kv'
@@ -36,6 +38,8 @@ class STWidget(FloatLayout):                      #root widget class - main func
     conn1 = Conn1()
     elog = ObjectProperty()
     sldr = ObjectProperty()
+    state_ch1 = StringProperty()
+    state_ch2 = StringProperty()    
     def show_disconn(self, *args):
         'shows disconnected label'
         try:
@@ -74,19 +78,12 @@ class STWidget(FloatLayout):                      #root widget class - main func
             curr_setup = self.s_data.deconstr(recv1)
             self.ids.eventlog.text = self.log1.addline('receiving... ' + str(curr_setup))
             print('receiving... ' + str(curr_setup))
-            self.ids.eventlog.text = self.log1.addline('sending... ' + str(sockstr))
-            print('sending... ' + str(sockstr))
-            self.s_conn.client_socket.send(sockstr)
-            recv1 = self.s_conn.client_socket.recv(32)
-            curr_setup = self.s_data.deconstr(recv1)
-            self.ids.eventlog.text = self.log1.addline('receiving... ' + str(recv1))
-            print('receiving... ' + str(recv1))
         except:
             curr_setup = (4, 0, [0, 0, 0, 0])
             self.ids.eventlog.text = self.log1.addline('communication error')
             print('communication error')
         return curr_setup
-    def light_setup_get(self):                  #gets current ESP32 chn setup
+    def light_setup_get(self, *args):                  #gets current ESP32 chn setup
         "gets current configuration"
         status = self.s_conn.connect()
         #sockstr = self.s_data.constr(1, 0, [0, 0, 0, 0])
@@ -96,6 +93,8 @@ class STWidget(FloatLayout):                      #root widget class - main func
                 self.curr_setup = self.data_exchange(1, 0, [0, 0, 0, 0])
                 self.s_conn.disconnect()
                 Clock.schedule_once(self.hide_conn, 1)
+                self.state_ch1 = str(self.curr_setup[2][0])
+                self.state_ch2 = str(self.curr_setup[2][1])
         else:
             self.curr_setup = (4, 0, [0, 0, 0, 0])
             Clock.schedule_once(self.show_disconn, 0)
@@ -227,6 +226,8 @@ class Lights_Ctrl1(App):                        #app class
         r_widg = STWidget()
         r_widg.open()                           #creates plots in graph
         r_widg.s_conn.load_conf(self.user_data_dir)
+        Clock.schedule_once(r_widg.light_setup_get, 2)
+        #r_widg.light_setup_get()
         #r_widg.test()
         Window.size = (320, 700)
         return r_widg
