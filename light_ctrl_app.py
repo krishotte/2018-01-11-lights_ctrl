@@ -22,24 +22,37 @@ from kivy.core.window import Window
 from kivy.lang import Builder
 from os import path
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, ListProperty
+from kivy.factory import Factory
 
 file_path = path.join(path.dirname(path.realpath(__file__)), 'lights_ctrl.kv')
-#file_path = path.dirname(path.realpath(__file__)) + '\\lights_ctrl.kv'
+print('loading... ' + file_path)
 with open(file_path, encoding='utf-8') as f: # Note the name of the .kv 
+    Builder.load_string(f.read())
+file_path = path.join(path.dirname(path.realpath(__file__)), 'lights_setup.kv')
+print('loading... ' + file_path)
+with open(file_path, encoding='utf-8') as f:
     Builder.load_string(f.read())
 
 class Disconn1(Label):
     pass
 class Conn1(Disconn1):
     pass
-class STWidget(FloatLayout):                      #root widget class - main functionality - GUI
-    disconn1 = Disconn1()
-    conn1 = Conn1()
+class STWidget(RelativeLayout):
+    ch1_vals = ListProperty()
+    ch2_vals = ListProperty()
     elog = ObjectProperty()
     sldr = ObjectProperty()
     state_ch1 = StringProperty()
-    state_ch2 = StringProperty()    
+    state_ch2 = StringProperty()  
+class Lights_Setup(BoxLayout):
+    ch1_vals = ListProperty()
+    ch2_vals = ListProperty()
+class MainWidget(FloatLayout):                      #root widget class - main functionality - GUI
+    disconn1 = Disconn1()
+    conn1 = Conn1()
+    light_ctrl = Factory.STWidget()
+    light_setup = Factory.Lights_Setup()
     def show_disconn(self, *args):
         'shows disconnected label'
         try:
@@ -60,23 +73,41 @@ class STWidget(FloatLayout):                      #root widget class - main func
     def hide_conn(self, *args):
         'hides connected label'
         self.remove_widget(self.conn1)
+    def show_ctrl(self):
+        'shows main control widget'
+        self.remove_widget(self.light_setup)
+        self.add_widget(self.light_ctrl)
+        print('ctrl shown')
+        #self.light_setup.ch1_vals = self.light_ctrl.ch1_vals
+    def show_setup(self):
+        'shows setup widget'
+        self.remove_widget(self.light_ctrl)
+        self.add_widget(self.light_setup)
+        print('setup shown')
     def open(self):                             #inits app
         "initializes main widget class"
+        self.add_widget(self.light_ctrl)
         self.s_data = m_socket.socket_data()            #socket data
         self.s_conn = m_socket.socket_connection()      #socket connection
         self.log1 = m_logger.log(25)                    #inits logger
         #self.ids.eventlog.text = self.log1.addline('LightsCtrl v 0.2\n--------------------------')
         #Clock.schedule_interval(self.test_autolabels, 3)
+        self.light_ctrl.ch1_vals = [100, 70, 40, 20, 0]
+        self.light_ctrl.ch2_vals = [100, 70, 40, 20, 0] #['100', '70', '40', '20', '0']
+        self.light_setup.ch1_vals = [100, 70, 40, 20, 0]#['100', '70', '40', '20', '0']
+        self.light_setup.ch2_vals = [100, 70, 40, 20, 0]
+        self.tfields_update()
     def data_exchange(self, cmd, chn, duties):
         'exchanges data throught the socket'
         try:
             sockstr = self.s_data.constr(cmd, chn, duties)
-            self.ids.eventlog.text = self.log1.addline('sending... ' + str((cmd, chn, duties)))
+            #self.ids.eventlog.text = self.log1.addline('sending... ' + str((cmd, chn, duties)))
+            self.light_ctrl.elog.text = self.log1.addline('sending... ' + str((cmd, chn, duties)))
             print('sending... ' + str((cmd, chn, duties)))
             self.s_conn.client_socket.send(sockstr)
             recv1 = self.s_conn.client_socket.recv(32)
             curr_setup = self.s_data.deconstr(recv1)
-            self.ids.eventlog.text = self.log1.addline('receiving... ' + str(curr_setup))
+            #self.ids.eventlog.text = self.log1.addline('receiving... ' + str(curr_setup))
             print('receiving... ' + str(curr_setup))
         except:
             curr_setup = (4, 0, [0, 0, 0, 0])
@@ -119,10 +150,10 @@ class STWidget(FloatLayout):                      #root widget class - main func
                 Clock.schedule_once(self.hide_conn, 1)
             else:
                 Clock.schedule_once(self.show_disconn, 0)
-                self.ids.eventlog.text = self.log1.addline('could not connect, check network config')
+                #self.ids.eventlog.text = self.log1.addline('could not connect, check network config')
                 print('could not connect, check network config')
         else:
-            self.ids.eventlog.text = self.log1.addline('could not connect, check network config')
+            #self.ids.eventlog.text = self.log1.addline('could not connect, check network config')
             print('could not connect, check network config')
     def light_chn_upd_2(self, chn, duty):
         "obsolete - update lighting level for single channel"
@@ -173,19 +204,55 @@ class STWidget(FloatLayout):                      #root widget class - main func
         self.light_setup_get()
         self.TGlBtn = -1
         print("curr setup: ", str(self.curr_setup))
-        if self.ids.TGlBtn1.state == 'down':
+        if self.light_ctrl.ids.TGlBtn1.state == 'down':
             self.TGlBtn = 1
-        elif self.ids.TGlBtn2.state == 'down':
+        elif self.light_ctrl.ids.TGlBtn2.state == 'down':
             self.TGlBtn = 2
         if self.TGlBtn > 0:
-            self.ids.sldr1.value = self.curr_setup[2][self.TGlBtn -1]
+            self.light_ctrl.ids.sldr1.value = self.curr_setup[2][self.TGlBtn -1]
             print('slider value: ', self.curr_setup[2][self.TGlBtn -1])
         print('TGlBtn value: ', self.TGlBtn)
     def slider_move(self):
         "updates light intensity according to slider value"
         #self.slider_update()
         if self.TGlBtn > 0:
-            self.light_chn_upd(self.TGlBtn -1, int(self.ids.sldr1.value))
+            self.light_chn_upd(self.TGlBtn -1, int(self.light_ctrl.ids.sldr1.value))
+    def tfields_update(self):
+        self.tfields = [
+            self.light_setup.ids.ch1a.text,
+            self.light_setup.ids.ch1b.text,
+            self.light_setup.ids.ch1c.text,
+            self.light_setup.ids.ch1d.text,
+            self.light_setup.ids.ch1e.text,
+            self.light_setup.ids.ch2a.text,
+            self.light_setup.ids.ch2b.text,
+            self.light_setup.ids.ch2c.text,
+            self.light_setup.ids.ch2d.text,
+            self.light_setup.ids.ch2e.text
+        ]
+    def update_ctrl(self):
+        'validates and updates ctrl widget button values'
+        print('ch1_vals: ' + str(self.light_setup.ch1_vals))
+        self.tfields_update()
+        a = []
+        for i in range(5):
+            if (int(self.tfields[i]) <= 100) and (int(self.tfields[i]) >= 0):
+                a.append(self.tfields[i])
+            else:
+                a.append(self.light_ctrl.ch1_vals[i])
+        print('ch1_vals to update:' + str(a))
+        self.light_ctrl.ch1_vals = a
+        print('ch1_vals: ' + str(self.light_setup.ch1_vals))
+        self.tfields_update()
+        b = []
+        for i in range(5):
+            if (int(self.tfields[i+5]) <= 100) and (int(self.tfields[i+5]) >= 0):
+                b.append(self.tfields[i+5])
+            else:
+                b.append(self.light_ctrl.ch2_vals[i])
+        print('ch1_vals to update:' + str(b))
+        self.light_ctrl.ch2_vals = b
+        self.show_ctrl()
     def test(self):            
         """
         testing class
@@ -221,9 +288,12 @@ class STWidget(FloatLayout):                      #root widget class - main func
         Clock.schedule_once(self.hide_disconn, 1.5)
         Clock.schedule_once(self.show_conn, 2)
         Clock.schedule_once(self.hide_conn, 2.5)
+    def test_listproperty(self):
+        print('ch1_vals: ' + str(self.light_setup.ch1_vals))
+            
 class Lights_Ctrl1(App):                        #app class
     def build(self):
-        r_widg = STWidget()
+        r_widg = MainWidget()
         r_widg.open()                           #creates plots in graph
         r_widg.s_conn.load_conf(self.user_data_dir)
         Clock.schedule_once(r_widg.light_setup_get, 2)

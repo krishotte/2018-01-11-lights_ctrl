@@ -1,0 +1,63 @@
+#:kivy 1.9.0
+<TextInput1@TextInput>:
+    padding: (10,10,10,10)
+    multiline: False
+    font_size: '22sp'
+<Lights_Setup>:
+    orientation: 'vertical'
+    ch1_vals: [0, 0, 0, 0, 0] #['0', '0', '0', '0', '0']
+    ch2_vals: [0, 0, 0, 0, 0] #['0', '0', '0', '0', '0']
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: 0.1
+        Label1:
+            text: 'Setup'
+            size_hint_x: 0.8
+            canvas.before:
+                Color:
+                    rgba: 0.5, 0, 0, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+        Button:
+            text: 'OK'
+            size_hint_x: 0.2
+            on_release: app.root.update_ctrl() #app.root.show_ctrl()
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: 0.9
+        BoxLayout:
+            orientation: 'vertical'
+            TextInput1:
+                text: str(root.ch1_vals[0])
+                id: ch1a
+                #on_text: root.update_list(0, self.text)
+            TextInput1:
+                text: str(root.ch1_vals[1])
+                id: ch1b
+            TextInput1:
+                text: str(root.ch1_vals[2])
+                id: ch1c
+            TextInput1:
+                text: str(root.ch1_vals[3])
+                id: ch1d
+            TextInput1:
+                text: str(root.ch1_vals[4])
+                id: ch1e
+        BoxLayout:
+            orientation: 'vertical'
+            TextInput1:
+                text: str(root.ch2_vals[0])
+                id: ch2a
+            TextInput1:
+                text: str(root.ch2_vals[1])
+                id: ch2b
+            TextInput1:
+                text: str(root.ch2_vals[2])
+                id: ch2c
+            TextInput1:
+                text: str(root.ch2_vals[3])
+                id: ch2d
+            TextInput1:
+                text: str(root.ch2_vals[4])
+                id: ch2e

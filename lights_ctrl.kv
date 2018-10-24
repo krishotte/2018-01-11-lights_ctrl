@@ -7,7 +7,7 @@
     font_size: '20sp'
     valign: 'middle'
     halign: 'left'
-    size_hint_y: 0.1
+    #size_hint_y: 0.1
 <Disconn1>:
     text: 'disconnected'
     color: 1, 0.25, 0.25, 1
@@ -48,6 +48,8 @@
     sldr: sldr1
     state_ch1: ''
     state_ch2: ''
+    ch1_vals: [0, 0, 0, 0, 0]
+    ch2_vals: [0, 0, 0, 0, 0]
     BoxLayout:
         orientation: 'vertical'
         Carousel:
@@ -55,53 +57,61 @@
             #orientation: 'vertical'
             BoxLayout:
                 orientation: 'vertical'
-                Label1:
-                    text: 'Lights control'
-                    canvas.before:
-                        Color:
-                            rgba: 0.059, 0.220, 0.346, 1
-                        Rectangle:
-                            pos: self.pos
-                            size: self.size
+                BoxLayout:
+                    size_hint_y: 0.1
+                    orientation: 'horizontal'
+                    Label1:
+                        text: 'Lights control'
+                        size_hint_x: 0.8
+                        canvas.before:
+                            Color:
+                                rgba: 0.059, 0.220, 0.346, 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+                    Button:
+                        text: 'Setup'
+                        size_hint_x: 0.2
+                        on_release: app.root.show_setup()
                 BoxLayout:
                     orientation: 'horizontal'
-                    size_hint_y: 0.8
+                    size_hint_y: 0.9
                     BoxLayout:
                         orientation: 'vertical'
                         size_hint_x: 0.4
                         Button1:
-                            text: 'full'
-                            on_release: root.light_chn_upd(0, 100) #root.light_setup_get() #root.show_disconn() #root.light_chn_upd(0, 100)
+                            text: str(root.ch1_vals[0]) #'full'
+                            on_release: app.root.light_chn_upd(0, int(self.text)) #root.light_setup_get() #root.show_disconn() #root.light_chn_upd(0, 100)
                         Button1:
-                            text: '70%'
-                            on_release: root.light_chn_upd(0, 70)
+                            text: str(root.ch1_vals[1]) #'70%'
+                            on_release: app.root.light_chn_upd(0, int(self.text))
                         Button1:
-                            text: '40%'
-                            on_release: root.light_chn_upd(0, 40)
+                            text: str(root.ch1_vals[2]) #'40%'
+                            on_release: app.root.light_chn_upd(0, int(self.text))
                         Button1:
-                            text: '20%'
-                            on_release: root.light_chn_upd(0, 20)
+                            text: str(root.ch1_vals[3]) #'20%'
+                            on_release: app.root.light_chn_upd(0, int(self.text))
                         Button1:
-                            text: 'off'
-                            on_release: root.light_chn_upd(0, 0)
+                            text: str(root.ch1_vals[4]) #'off'
+                            on_release: app.root.light_chn_upd(0, int(self.text))
                     BoxLayout:
                         orientation: 'vertical'
                         size_hint_x: 0.4
                         Button1:
-                            text: 'full'
-                            on_release: root.light_chn_upd(1, 100)
+                            text: str(root.ch2_vals[0]) #'full'
+                            on_release: app.root.light_chn_upd(1, int(self.text))
                         Button1:
-                            text: '70%'
-                            on_release: root.light_chn_upd(1, 70)
+                            text: str(root.ch2_vals[1]) #'70%'
+                            on_release: app.root.light_chn_upd(1, int(self.text))
                         Button1:
-                            text: '40%'
-                            on_release: root.light_chn_upd(1, 40)
+                            text: str(root.ch2_vals[2]) #'40%'
+                            on_release: app.root.light_chn_upd(1, int(self.text))
                         Button1:
-                            text: '20%'
-                            on_release: root.light_chn_upd(1, 20)
+                            text: str(root.ch2_vals[3]) #'20%'
+                            on_release: app.root.light_chn_upd(1, int(self.text))
                         Button1:
-                            text: 'off'
-                            on_release: root.light_chn_upd(1, 0)
+                            text: str(root.ch2_vals[4]) #'off'
+                            on_release: app.root.light_chn_upd(1, int(self.text))
                     BoxLayout:
                         orientation: 'vertical'
                         size_hint_x: 0.2
@@ -112,7 +122,7 @@
                                 text: 'Ch1'
                                 group: 'a'
                                 id: TGlBtn1
-                                on_release: root.slider_update()
+                                on_release: app.root.slider_update()
                             LightState:
                                 pos_hint: {'top':0.98, 'right':0.98}
                                 text: root.state_ch1
@@ -124,7 +134,7 @@
                                 group: 'a'
                                 id: TGlBtn2
                                 state: 'down'
-                                on_release: root.slider_update()
+                                on_release: app.root.slider_update()
                             LightState:
                                 pos_hint: {'top':0.98, 'right':0.98}
                                 text: root.state_ch2
@@ -136,7 +146,7 @@
                             step: 2
                             value: 20
                             id: sldr1
-                            on_value: root.slider_move()
+                            on_value: app.root.slider_move()
             BoxLayout:
                 orientation: 'vertical'
                 Label1:
