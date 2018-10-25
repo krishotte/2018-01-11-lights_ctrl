@@ -5,8 +5,8 @@
     font_size: '22sp'
 <Lights_Setup>:
     orientation: 'vertical'
-    ch1_vals: [0, 0, 0, 0, 0] #['0', '0', '0', '0', '0']
-    ch2_vals: [0, 0, 0, 0, 0] #['0', '0', '0', '0', '0']
+    ch1_vals: [0, 0, 0, 0, 0]
+    ch2_vals: [0, 0, 0, 0, 0]
     BoxLayout:
         orientation: 'horizontal'
         size_hint_y: 0.1
@@ -22,7 +22,7 @@
         Button:
             text: 'OK'
             size_hint_x: 0.2
-            on_release: app.root.update_ctrl() #app.root.show_ctrl()
+            on_release: app.root.update_ctrl()
     BoxLayout:
         orientation: 'horizontal'
         size_hint_y: 0.9
