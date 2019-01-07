@@ -67,6 +67,37 @@ def net_conn():
     print('ifconfig: ', sta_if.ifconfig())
     return sta_if.ifconfig()[0]
 
+def net_conn2():
+    """
+    connect to network function
+    """
+    #ssid = 'vlmaba3'
+    #passwd = 'pricintorine1320'
+    ssid = "UPC5515895"
+    passwd = "hsa8de6yrxGh"
+    #ssid = "Lenovo P1ma40"
+    #passwd = "alfa1234"
+    
+    sta_if = network.WLAN(network.STA_IF)
+    print('network active: ', sta_if.active())
+    sta_if.active(True)
+    #sta_if.ifconfig(('192.168.0.9','255.255.255.0','192.168.0.1','192.168.0.1'))
+    
+    i=0
+    while i<6 and sta_if.isconnected()==False:
+        i += 1
+        sta_if.connect(ssid, passwd)
+        print(sta_if.isconnected(), "i: ", i)
+        utime.sleep(3)
+    print('is connected: ', sta_if.isconnected())
+    if sta_if.isconnected() == True:
+        sta_if.ifconfig(('192.168.0.12','255.255.255.0','192.168.0.1','192.168.0.1'))
+        psig.duty(10) #value(1)
+    else:
+        psig.duty(0)
+    print('ifconfig: ', sta_if.ifconfig())
+    return sta_if.ifconfig()[0]
+
 sdata = socket_data()
 duty0 = 10
 duty1 = 10
@@ -79,7 +110,7 @@ p1.duty(duty1*1023//100)
 #psig.value(0)
 psig = machine.PWM(machine.Pin(2), freq=pwm_freq)
 psig.duty(100)
-my_ip = net_conn()
+my_ip = net_conn2()
 print('my ip: ', my_ip)
 
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
