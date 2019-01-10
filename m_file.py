@@ -2,7 +2,11 @@
 file module - handles file operations
 mainly ini/json file storage of dictionaries
 """
-from os import getcwd, path #import os
+from os import getcwd #, path #import os
+try:
+    from os import path
+except:
+    print('warning, path module not imported')
 import json
 import io
 
@@ -39,7 +43,7 @@ class ini:
         file1 = io.open(path.join(dir_path, file1), 'w', encoding='utf8')
         file1.write(str1)
         file1.close()
-class ini2():
+class ini2:
     def read(self, file1):
         """
         reads ini file, returns dictionary
@@ -53,7 +57,7 @@ class ini2():
         except:
             data_loaded = {}          #returns default
             print('error reading file, returning default: ', data_loaded)
-        print(data_loaded)
+        print('data loaded: ', data_loaded)
         return data_loaded
     def write(self, file1, data):
         """
@@ -65,3 +69,17 @@ class ini2():
         file_1 = io.open(file1, 'w', encoding='utf8')
         file_1.write(str1)
         file_1.close()
+
+class uini:
+    'microptyhon 1.9.4 ini file operations implementation'
+    def read(self, file1):
+        'reads json file, returns dictionary'
+        self.data_dir = getcwd()
+        print('datadir: ', self.data_dir)
+        self.file = io.open(self.data_dir + file1)
+        #self.file_data = self.file.read()
+        #self.json_data = json.loads(self.file_data)
+        self.json_data = json.load(self.file)
+        self.file.close()
+        print('json data: ', self.json_data)
+        return self.json_data
