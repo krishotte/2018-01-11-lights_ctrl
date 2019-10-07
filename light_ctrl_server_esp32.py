@@ -1,9 +1,12 @@
+# rename to light2.py - used by main.py on esp32
+
 import network
 import socket
 import utime
 import machine
 from m_file import uini
 import uping
+
 
 class socket_data:                              
     """
@@ -21,6 +24,7 @@ class socket_data:
         self.duties = []                        #all channels values
         self.pwms = []                          #all channels pwms
         self.str1 = []                          #list of values of decoded binary string
+
     def constr(self, cmd, chn, duties):
         """
         cunstructs byte string for socket communication
@@ -30,6 +34,7 @@ class socket_data:
             pwm = (duty * 255)//100
             self.strdata = self.strdata + str(hex(pwm)).encode()
         return self.strdata
+        
     def deconstr(self, strg):
         """
         deconstructs data from socket byte string
@@ -44,11 +49,12 @@ class socket_data:
             self.pwms.append(int(self.str1[i], 16))
         return (self.cmd, self.chn, self.duties)
 
+
 class socket_server:
-    '''
+    """
     manages socket server
-    provide ip address to set on init
-    '''
+    provide ip address to set and network_conn instance on init
+    """
     def __init__(self, ipaddr, conn):
         self.ipaddr = ipaddr
         self.sdata = socket_data()
@@ -119,6 +125,9 @@ class socket_server:
                 self.clientsocket.close()
 
     def exchange_comm(self):
+        """
+        communicates with client
+        """
         cmd1 = 0
         count = 0
         while (cmd1 == 5) or (count < 2): #count < 1: #(cmd1 != 5) and (count < 5):
@@ -156,28 +165,33 @@ class socket_server:
                     self.clientsocket.send(b'0x50x00x00x00x00x00x00x00')
     
     def check_comm(self):
+        """
+        checks network connection by pinging gateway
+        reconnects if necessary
+        """
         actual_time = utime.time()
         if (actual_time - self.last_conn_check) > self.timeout*5:
             print('checking network connection')
             self.last_conn_check = actual_time
             connected = self.conn.check_conn()
-            if connected == False:
-                #what about running socket connection?
-                #will it still be running after network restart?
+            if not connected:
+                # what about running socket connection?
+                # will it still be running after network restart?
                 self.close()
                 print('closing network connection')
                 self.conn.close()
                 print('establishing network connection...')
-                #TODO not tested
+                # TODO not tested
                 self.conn.connect2()
                 self.start()
                 self.listen_indef()
 
+
 class network_conn:
-    '''
+    """
     manages network connectivity
     provide configuration file name on init
-    '''
+    """
     def __init__(self, config_file):
         self.sta_if = network.WLAN(network.STA_IF)
         print('network is active: ', self.sta_if.active())
@@ -207,42 +221,47 @@ class network_conn:
         print('loaded config: ssid: ', self.ssid, ' passwd: ', self.passwd, ' ip address: ', self.ipaddr, ' gateway: ', self.gateway)
 
     def connect(self):
-        '''
+        """
         connects to AP
         assigns provided ip address to server
-        '''
+        """
         i = 0
-        while i<6 and self.sta_if.isconnected()==False:
+        while i < 6 and self.sta_if.isconnected() == False:
             i += 1
             self.sta_if.connect(self.ssid, self.passwd)
             print('connecting... ', self.sta_if.isconnected(), ", stage: ", i)
             utime.sleep(3)
         print('is connected?: ', self.sta_if.isconnected())
-        if self.sta_if.isconnected() == True:
+        if self.sta_if.isconnected():
             self.sta_if.ifconfig((self.ipaddr,'255.255.255.0','192.168.0.1','192.168.0.1'))
             psig.duty(10) 
         else:
             psig.duty(0)
         print('ifconfig: ', self.sta_if.ifconfig())
-        #return sta_if.ifconfig()[0]
+        # return sta_if.ifconfig()[0]
 
     def connect2(self):
-        '''
-        improved preffered connect method
-        '''
-        self.sta_if.ifconfig((self.ipaddr,'255.255.255.0', self.gateway, self.gateway))
+        """
+        connects to AP
+        improved preferred connect method
+        """
+        self.sta_if.ifconfig((self.ipaddr, '255.255.255.0', self.gateway, self.gateway))
         self.sta_if.connect(self.ssid, self.passwd)
         utime.sleep(5)
         print('is connected? (sta_if): ', self.sta_if.isconnected())
         print('ifconfig: ', self.sta_if.ifconfig())
         check_conn = self.check_conn()
         print('network connected: ', check_conn)
-        if check_conn == True:
+        if check_conn:
             psig.duty(10)
         else:
             psig.duty(0)
 
     def check_conn(self):
+        """
+        checks network connection by pinging gateway
+        uses uping.py
+        """
         print('is connected? (sta_if): ', self.sta_if.isconnected)
         try:
             ping_status = uping.ping(self.gateway)
@@ -263,7 +282,8 @@ class network_conn:
         print('network connected: ', self.check_conn())
         psig.duty(0)
 
-#global variables:
+
+# global variables:
 pwm_freq = 5000
 psig = machine.PWM(machine.Pin(2), freq=pwm_freq)
 psig.duty(100)
@@ -276,6 +296,7 @@ p1.duty(10*1023//100)
 def net_conn():
     """
     connect to network function
+    obsolete
     """
     #ssid = 'vlmaba3'
     #passwd = 'pricintorine1320'
@@ -298,9 +319,11 @@ def net_conn():
     print('ifconfig: ', sta_if.ifconfig())
     return sta_if.ifconfig()[0]
 
+
 def net_conn2(ipaddr):
     """
     connect to network function
+    obsolete
     """
     #ssid = 'vlmaba3'
     #passwd = 'pricintorine1320'
@@ -329,8 +352,9 @@ def net_conn2(ipaddr):
     print('ifconfig: ', sta_if.ifconfig())
     return sta_if.ifconfig()[0]
 
+
 def main():
-    'runs main script'
+    """runs main script"""
     global conn
     conn = network_conn('conf.json')
     conn.connect2()
@@ -339,8 +363,12 @@ def main():
     server1.start(20)
     server1.listen_indef()
 
+
 def main_old(ipaddr):
-    'runs former main script version'
+    """
+    runs former main script version
+    obsolete
+    """
     sdata = socket_data()
     duty0 = 10
     duty1 = 10
@@ -409,4 +437,5 @@ def main_old(ipaddr):
             clientsocket.close()            #important to close connection even from server side
                 #utime.sleep(0.1)
 
-#main_old()         
+
+# main_old()
