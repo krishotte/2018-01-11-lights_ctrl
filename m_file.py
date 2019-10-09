@@ -70,16 +70,47 @@ class ini2:
         file_1.write(str1)
         file_1.close()
 
+
 class uini:
-    'microptyhon 1.9.4 ini file operations implementation'
+    """
+    microptyhon 1.9.4 ini file operations implementation
+    """
     def read(self, file1):
-        'reads json file, returns dictionary'
+        """
+        reads json file, returns dictionary
+        """
         self.data_dir = getcwd()
         print('datadir: ', self.data_dir)
+
+        """
         self.file = io.open(self.data_dir + file1)
         #self.file_data = self.file.read()
         #self.json_data = json.loads(self.file_data)
         self.json_data = json.load(self.file)
         self.file.close()
+        """
+        try:
+            with io.open(file1) as data_file:
+                self.json_data = json.load(data_file)
+        except:
+            self.json_data = {}  # returns default
+            print('error reading file, returning default: ')
+
         print('json data: ', self.json_data)
         return self.json_data
+
+    def write(self, file1, data):
+        """
+        writes dictionary to file with json structure
+        :param file1:
+        :param data:
+        :return:
+        """
+        self.data_dir = getcwd()
+        # str1 = json.dumps(data, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
+        str1 = json.dumps(data)
+        print('data to write: ' + str1)
+        print('writing file: ' + file1)
+
+        with io.open(file1, 'w', encoding='utf8') as data_file:
+            data_file.write(str1)

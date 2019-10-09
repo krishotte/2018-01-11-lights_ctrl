@@ -56,12 +56,16 @@ class socket_server:
     provide ip address to set and network_conn instance on init
     """
     def __init__(self, ipaddr, conn):
+        """
+        TODO minor: 0 duty after reset becomes 1
+        """
         self.ipaddr = ipaddr
         self.sdata = socket_data()
-        self.duty0 = 10
-        self.duty1 = 10
+        self.duty0 = p0.duty() * 100 // 1024 + 1  # 10
+        self.duty1 = p1.duty() * 100 // 1024 + 1  # 10
         self.conn = conn 
-        self.last_conn_check = 0  
+        self.last_conn_check = 0
+        self.ini = uini()
 
     def start(self, timeout=None):
         '''
@@ -124,13 +128,27 @@ class socket_server:
                 print('client socket closing...')
                 self.clientsocket.close()
 
+            # check touch_reset
+            """
+            print(' used rst threshold: ', self.conn.conf['rst_threshold'])
+            if touch_reset.read() < 500:
+                print(' touch value: ', touch_reset.read())
+                utime.sleep(1)
+                if touch_reset.read() < 500:
+                    print(' touch reset value check: ', touch_reset.read())
+                    print('reseting esp32')
+                    utime.sleep(2)
+                    machine.reset()
+            """
+
     def exchange_comm(self):
         """
         communicates with client
+        TODO: simplify communication, get rid of while loop if possible
         """
         cmd1 = 0
         count = 0
-        while (cmd1 == 5) or (count < 2): #count < 1: #(cmd1 != 5) and (count < 5):
+        while (cmd1 == 5) or (count < 2):  # count < 1: #(cmd1 != 5) and (count < 5):
             count += 1
             str1 = self.clientsocket.recv(32)
             print('count: ', count, 'str1: ', str1)
@@ -152,14 +170,19 @@ class socket_server:
                 print('cmd: ', cmd1, ' , chn: ', chn, ' , duties: ', duties)
                 if cmd1 == 1:
                     str2 = self.sdata.constr(3, 0, [self.duty0, self.duty1, 0, 0])
-                    self.clientsocket.send(str2) #b'0x30x00x00x00xff0xb20x7f0xdd')
+                    self.clientsocket.send(str2)  # b'0x30x00x00x00xff0xb20x7f0xdd')
                 elif cmd1 == 2:
                     self.duty0 = duties[0]
                     self.duty1 = duties[1]
-                    p0.duty(self.duty0*1023//100)
-                    p1.duty(self.duty1*1023//100)
+                    p0.duty(self.duty0 * 1023 // 100)
+                    p1.duty(self.duty1 * 1023 // 100)
                     str2 = self.sdata.constr(3, 0, [self.duty0, self.duty1, 0, 0])    
-                    self.clientsocket.send(str2) #b'0x30x00x00x00xdd0xb20x7f0xaa')
+                    self.clientsocket.send(str2)  # b'0x30x00x00x00xdd0xb20x7f0xaa')
+
+                    # updates current state in startup.json
+                    saved_state = self.ini.read("startup.json")
+                    saved_state['duties'] = [self.duty0, self.duty1, 0, 0]
+                    self.ini.write('startup.json', saved_state)
                 elif cmd1 == 5:
                     print('success')
                     self.clientsocket.send(b'0x50x00x00x00x00x00x00x00')
@@ -183,8 +206,20 @@ class socket_server:
                 print('establishing network connection...')
                 # TODO not tested
                 self.conn.connect2()
-                self.start()
+                self.start(20)
                 self.listen_indef()
+
+    def read_startup(self):
+        """
+        reads config from startup.json
+        """
+        pass
+
+    def write_startup(self, duties):
+        """
+        writes config to startup.json
+        """
+        pass
 
 
 class network_conn:
@@ -284,6 +319,9 @@ class network_conn:
 
 
 # global variables:
+config = {'rst_threshold': 200}
+config.update(uini().read("conf.json"))
+
 pwm_freq = 5000
 psig = machine.PWM(machine.Pin(2), freq=pwm_freq)
 psig.duty(100)
@@ -291,7 +329,8 @@ p0 = machine.PWM(machine.Pin(12), freq=pwm_freq)
 p1 = machine.PWM(machine.Pin(14), freq=pwm_freq)
 p0.duty(10*1023//100)
 p1.duty(10*1023//100)
-    
+touch_reset = machine.TouchPad(machine.Pin(32))
+
 
 def net_conn():
     """
@@ -353,8 +392,40 @@ def net_conn2(ipaddr):
     return sta_if.ifconfig()[0]
 
 
+def cb_reset_check(t):
+    touch1 = touch_reset.read()
+    print(' touch_reset callback value: ', touch1)
+    if touch1 < config['rst_threshold']:
+        utime.sleep(0.4)
+        touch2 = touch_reset.read()
+        if touch2 < config['rst_threshold']:
+            print(' touch_reset callback check value: ', touch2)
+            print('resetting esp32...')
+            machine.reset()
+
+
+# touch_reset check timer
+timer1 = machine.Timer(-1)
+timer1.init(period=1000, mode=machine.Timer.PERIODIC, callback=cb_reset_check)
+
+
 def main():
     """runs main script"""
+    # loads config
+    ini = uini()
+    startup_config = {
+        'duties': [5, 5, 0, 0],
+    }
+    startup_config.update(ini.read("startup.json"))
+    print(' using config: ', startup_config)
+
+    # returns LEDs to previous state
+    print(' returning LEDs to previous state')
+    p0.duty(startup_config['duties'][0] * 1023 // 100)
+    p1.duty(startup_config['duties'][1] * 1023 // 100)
+
+    # starts server
+    print('initiating network connection')
     global conn
     conn = network_conn('conf.json')
     conn.connect2()
