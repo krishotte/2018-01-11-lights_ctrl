@@ -47,11 +47,14 @@ class STWidget(RelativeLayout):
 class Lights_Setup(BoxLayout):
     ch1_vals = ListProperty()
     ch2_vals = ListProperty()
+
+
 class MainWidget(FloatLayout):                      #root widget class - main functionality - GUI
     disconn1 = Disconn1()
     conn1 = Conn1()
     light_ctrl = Factory.STWidget()
     light_setup = Factory.Lights_Setup()
+
     def show_disconn(self, *args):
         'shows disconnected label'
         try:
@@ -60,9 +63,11 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
             self.aprint('disconn widget just displayed')
         except:
             self.aprint('disconn widget already displayed')
+
     def hide_disconn(self, *args):
         'hides disconnected label'
         self.light_ctrl.ctrl_label.remove_widget(self.disconn1)
+
     def show_conn(self, *args):
         'shows connected label'
         try:
@@ -70,24 +75,29 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
             self.aprint('conn widget just displayed')
         except:
             self.aprint('conn widget already displayed')
+
     def hide_conn(self, *args):
         'hides connected label'
         self.light_ctrl.ctrl_label.remove_widget(self.conn1)
+
     def show_ctrl(self):
         'shows main control widget'
         self.remove_widget(self.light_setup)
         self.add_widget(self.light_ctrl)
         self.aprint('ctrl shown')
         #self.light_setup.ch1_vals = self.light_ctrl.ch1_vals
+
     def show_setup(self):
         'shows setup widget'
         self.remove_widget(self.light_ctrl)
         self.add_widget(self.light_setup)
         self.aprint('setup shown')
+
     def aprint(self, message):
         'prints message to standard output and to kivy log'
         print('aprint message: ' + message)
         self.light_ctrl.elog.text = self.log1.addline(message)
+
     def load_settings(self):
         'loads settings.json if exists'
         settings = m_file.ini2().read(path.join(self.datadir, 'settings.json'))
@@ -106,6 +116,7 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
             self.aprint('key ch2_vals not found, using default')
         if not settings:
             self.save_settings() #datadir)
+
     def save_settings(self):
         'saves GUI setup to settings.json'
         self.aprint('saving settings.json')
@@ -114,6 +125,7 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
             'ch2_vals': self.light_ctrl.ch2_vals
         }
         m_file.ini2().write(path.join(self.datadir, 'settings.json'), settings)
+
     def open(self, datadir):                             #inits app
         "initializes main widget class"
         self.add_widget(self.light_ctrl)
@@ -126,6 +138,7 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
         self.light_setup.ch1_vals = self.light_ctrl.ch1_vals
         self.light_setup.ch2_vals = self.light_ctrl.ch2_vals
         self.tfields_update()
+
     def data_exchange(self, cmd, chn, duties):
         'exchanges data throught the socket'
         try:
@@ -139,6 +152,7 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
             curr_setup = (4, 0, [0, 0, 0, 0])
             self.aprint('communication error')
         return curr_setup
+
     def light_setup_get(self, *args):                  #gets current ESP32 chn setup
         "gets current configuration"
         status = self.s_conn.connect()
@@ -154,6 +168,7 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
         else:
             self.curr_setup = (4, 0, [0, 0, 0, 0])
             Clock.schedule_once(self.show_disconn, 0)
+
     def light_chn_upd(self, chn, duty):
         'updates lighting level for single channel, simplified'
         self.aprint('------------------')
@@ -178,6 +193,7 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
                 self.aprint('could not connect, check network config')
         else:
             self.aprint('could not connect, check network config')
+
     def slider_update(self, *args):
         "updates slider value according to toggle button pressed"
         self.light_setup_get()
@@ -191,11 +207,13 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
             self.light_ctrl.ids.sldr1.value = self.curr_setup[2][self.TGlBtn -1]
             self.aprint('slider value: ' + str(self.curr_setup[2][self.TGlBtn -1]))
         self.aprint('TGlBtn value: ' + str(self.TGlBtn))
+
     def slider_move(self):
         "updates light intensity according to slider value"
         #self.slider_update()
         if self.TGlBtn > 0:
             self.light_chn_upd(self.TGlBtn -1, int(self.light_ctrl.sldr.value))
+
     def tfields_update(self):
         self.tfields = [
             self.light_setup.ids.ch1a.text,
@@ -209,6 +227,7 @@ class MainWidget(FloatLayout):                      #root widget class - main fu
             self.light_setup.ids.ch2d.text,
             self.light_setup.ids.ch2e.text
         ]
+
     def update_ctrl(self):
         'validates and updates ctrl widget button values'
         self.aprint('ch1_vals: ' + str(self.light_setup.ch1_vals))

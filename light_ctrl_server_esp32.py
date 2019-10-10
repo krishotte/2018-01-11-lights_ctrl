@@ -148,6 +148,7 @@ class socket_server:
         """
         cmd1 = 0
         count = 0
+        """
         while (cmd1 == 5) or (count < 2):  # count < 1: #(cmd1 != 5) and (count < 5):
             count += 1
             str1 = self.clientsocket.recv(32)
@@ -186,6 +187,37 @@ class socket_server:
                 elif cmd1 == 5:
                     print('success')
                     self.clientsocket.send(b'0x50x00x00x00x00x00x00x00')
+        """
+        str1 = self.clientsocket.recv(32)
+        print('count: ', count, 'str1: ', str1)
+        try:
+            a1 = self.sdata.deconstr(str1)
+        except Exception:
+            print('Error: incomplete message')
+        else:
+            cmd1 = a1[0]
+            chn = a1[1]
+            duties = a1[2]
+            print('cmd: ', cmd1, ' , chn: ', chn, ' , duties: ', duties)
+
+            if cmd1 == 1:
+                str2 = self.sdata.constr(3, 0, [self.duty0, self.duty1, 0, 0])
+                self.clientsocket.send(str2)  # b'0x30x00x00x00xff0xb20x7f0xdd')
+            elif cmd1 == 2:
+                self.duty0 = duties[0]
+                self.duty1 = duties[1]
+                p0.duty(self.duty0 * 1023 // 100)
+                p1.duty(self.duty1 * 1023 // 100)
+                str2 = self.sdata.constr(3, 0, [self.duty0, self.duty1, 0, 0])
+                self.clientsocket.send(str2)  # b'0x30x00x00x00xdd0xb20x7f0xaa')
+
+                # updates current state in startup.json
+                saved_state = self.ini.read("startup.json")
+                saved_state['duties'] = [self.duty0, self.duty1, 0, 0]
+                self.ini.write('startup.json', saved_state)
+            elif cmd1 == 5:
+                print('success')
+                self.clientsocket.send(b'0x50x00x00x00x00x00x00x00')
     
     def check_comm(self):
         """
@@ -319,13 +351,16 @@ class network_conn:
 
 
 # global variables:
-config = {'rst_threshold': 200}
+config = {
+    'rst_threshold': 200,
+    'pwm_freq': 5000,
+}
 config.update(uini().read("conf.json"))
 
-pwm_freq = 5000
-psig = machine.PWM(machine.Pin(2), freq=pwm_freq)
+pwm_freq = config['pwm_freq']
+psig = machine.PWM(machine.Pin(33), freq=pwm_freq)
 psig.duty(100)
-p0 = machine.PWM(machine.Pin(12), freq=pwm_freq)
+p0 = machine.PWM(machine.Pin(2), freq=pwm_freq)
 p1 = machine.PWM(machine.Pin(14), freq=pwm_freq)
 p0.duty(10*1023//100)
 p1.duty(10*1023//100)
@@ -405,8 +440,8 @@ def cb_reset_check(t):
 
 
 # touch_reset check timer
-timer1 = machine.Timer(-1)
-timer1.init(period=1000, mode=machine.Timer.PERIODIC, callback=cb_reset_check)
+# timer1 = machine.Timer(-1)
+# timer1.init(period=1000, mode=machine.Timer.PERIODIC, callback=cb_reset_check)
 
 
 def main():
@@ -423,6 +458,10 @@ def main():
     print(' returning LEDs to previous state')
     p0.duty(startup_config['duties'][0] * 1023 // 100)
     p1.duty(startup_config['duties'][1] * 1023 // 100)
+
+    # touch_reset check timer
+    timer1 = machine.Timer(-1)
+    timer1.init(period=1000, mode=machine.Timer.PERIODIC, callback=cb_reset_check)
 
     # starts server
     print('initiating network connection')
