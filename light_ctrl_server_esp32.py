@@ -6,6 +6,7 @@ import utime
 import machine
 from m_file import uini
 import uping
+import math
 
 
 class socket_data:                              
@@ -206,8 +207,11 @@ class socket_server:
             elif cmd1 == 2:
                 self.duty0 = duties[0]
                 self.duty1 = duties[1]
-                p0.duty(self.duty0 * 1023 // 100)
-                p1.duty(self.duty1 * 1023 // 100)
+                # p0.duty(self.duty0 * 1023 // 100)
+                # p1.duty(self.duty1 * 1023 // 100)
+                p0.duty(self.duty_to_natural_levels(self.duty0))
+                p1.duty(self.duty_to_natural_levels(self.duty1))
+
                 str2 = self.sdata.constr(3, 0, [self.duty0, self.duty1, 0, 0])
                 self.clientsocket.send(str2)  # b'0x30x00x00x00xdd0xb20x7f0xaa')
 
@@ -241,17 +245,21 @@ class socket_server:
                 self.start(20)
                 self.listen_indef()
 
-    def read_startup(self):
+    def duty_to_natural_levels(self, duty):
         """
-        reads config from startup.json
+        convert duty to natural level percieved by eye by exponential curve
+        duty can be in range1(0,100)
         """
-        pass
+        if duty < 0:
+            duty = 0
+        if duty > 100:
+            duty = 100
 
-    def write_startup(self, duties):
-        """
-        writes config to startup.json
-        """
-        pass
+        exp_argument = duty / 50 - 1
+        exponential_result = math.pow(10, exp_argument) * 10 / 9.9 - 0.1
+        natural_level = math.trunc(exponential_result * 102.3)
+
+        return natural_level
 
 
 class network_conn:
@@ -358,9 +366,9 @@ config = {
 config.update(uini().read("conf.json"))
 
 pwm_freq = config['pwm_freq']
-psig = machine.PWM(machine.Pin(33), freq=pwm_freq)
+psig = machine.PWM(machine.Pin(2), freq=pwm_freq)
 psig.duty(100)
-p0 = machine.PWM(machine.Pin(2), freq=pwm_freq)
+p0 = machine.PWM(machine.Pin(12), freq=pwm_freq)
 p1 = machine.PWM(machine.Pin(14), freq=pwm_freq)
 p0.duty(10*1023//100)
 p1.duty(10*1023//100)
@@ -456,8 +464,11 @@ def main():
 
     # returns LEDs to previous state
     print(' returning LEDs to previous state')
-    p0.duty(startup_config['duties'][0] * 1023 // 100)
-    p1.duty(startup_config['duties'][1] * 1023 // 100)
+    # p0.duty(startup_config['duties'][0] * 1023 // 100)
+    # p1.duty(startup_config['duties'][1] * 1023 // 100)
+
+    p0.duty(math.trunc((math.pow(10, (startup_config['duties'][0] / 50 - 1)) * 10 / 9.9 - 0.1) * 102.3))
+    p1.duty(math.trunc((math.pow(10, (startup_config['duties'][1] / 50 - 1)) * 10 / 9.9 - 0.1) * 102.3))
 
     # touch_reset check timer
     timer1 = machine.Timer(-1)
