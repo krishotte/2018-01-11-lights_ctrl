@@ -113,6 +113,7 @@ class socket_server:
         while True:
             counter += 1
             print('counter: ', counter, ', listening...')
+            watchdog.feed()
             #print('listening ...')
             self.check_comm()
             try:
@@ -256,8 +257,11 @@ class socket_server:
             duty = 100
 
         exp_argument = duty / 50 - 1
-        exponential_result = math.pow(10, exp_argument) * 10 / 9.9 - 0.1
-        natural_level = math.trunc(exponential_result * 102.3)
+        # exponential_result = math.pow(10, exp_argument) * 10 / 9.9 - 0.1
+        exponential_result = math.pow(math.e, exp_argument)
+
+        # natural_level = math.trunc(exponential_result * 102.3)
+        natural_level = math.trunc((exponential_result * 435.2) - 160.3)
 
         return natural_level
 
@@ -362,6 +366,7 @@ class network_conn:
 config = {
     'rst_threshold': 200,
     'pwm_freq': 5000,
+    'timeout': 20,
 }
 config.update(uini().read("conf.json"))
 
@@ -373,6 +378,7 @@ p1 = machine.PWM(machine.Pin(14), freq=pwm_freq)
 p0.duty(10*1023//100)
 p1.duty(10*1023//100)
 touch_reset = machine.TouchPad(machine.Pin(32))
+watchdog = machine.WDT(timeout=config['timeout'] * 2 * 1000)
 
 
 def net_conn():
@@ -467,8 +473,11 @@ def main():
     # p0.duty(startup_config['duties'][0] * 1023 // 100)
     # p1.duty(startup_config['duties'][1] * 1023 // 100)
 
-    p0.duty(math.trunc((math.pow(10, (startup_config['duties'][0] / 50 - 1)) * 10 / 9.9 - 0.1) * 102.3))
-    p1.duty(math.trunc((math.pow(10, (startup_config['duties'][1] / 50 - 1)) * 10 / 9.9 - 0.1) * 102.3))
+    # p0.duty(math.trunc((math.pow(10, (startup_config['duties'][0] / 50 - 1)) * 10 / 9.9 - 0.1) * 102.3))
+    # p1.duty(math.trunc((math.pow(10, (startup_config['duties'][1] / 50 - 1)) * 10 / 9.9 - 0.1) * 102.3))
+
+    p0.duty(math.trunc((math.pow(math.e, (startup_config['duties'][0] / 50 - 1))) * 435.2 - 160.3))
+    p1.duty(math.trunc((math.pow(math.e, (startup_config['duties'][1] / 50 - 1))) * 435.2 - 160.3))
 
     # touch_reset check timer
     timer1 = machine.Timer(-1)
