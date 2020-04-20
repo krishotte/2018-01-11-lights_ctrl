@@ -7,6 +7,7 @@ import machine
 from m_file import uini
 import uping
 import math
+import uselect
 
 
 class socket_data:                              
@@ -266,6 +267,121 @@ class socket_server:
         return natural_level
 
 
+class SocketServerNonblocking(socket_server):
+    """
+    handles nonblocking socket server using select
+    """
+    def __init__(self, ipaddr, conn):
+        """
+        TODO_: after reset duties change, are actually lower than should be
+        """
+        self.ipaddr = ipaddr
+        self.sdata = socket_data()
+        self.duty0 = 0  # p0.duty() * 100 // 1024 + 1  # 10
+        self.duty1 = 0  # p1.duty() * 100 // 1024 + 1  # 10
+        self.conn = conn
+        self.last_conn_check = 0
+        self.ini = uini()
+
+    def write_duties(self, duties):
+        self.duty0 = duties[0]
+        self.duty1 = duties[1]
+
+    def start(self, timeout=None):
+        self.timeout = timeout
+        self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.serversocket.setblocking(False)
+        # self.serversocket.settimeout(timeout)  # set timeout on selector instead
+        print('binding server socket...')
+        self.serversocket.bind((self.ipaddr, 8003))
+        self.serversocket.listen(20)
+
+        self.selector = uselect.poll()
+        self.selector.register(self.serversocket)
+
+    def listen_indef(self):
+        counter = 0
+        while True:
+            counter += 1
+            self.sock_count = 0
+            # print('counter: ', counter, ', listening...')
+            watchdog.feed()
+            # print('listening ...')
+            self.check_comm()
+
+            events = self.selector.poll(self.timeout * 1000)
+
+            for key, mask in events:  # key is socket reference - used directly for socket access
+                if mask != 4:
+                    print('counter: ', counter, ' key: ', repr(key), ' mask: ', repr(mask))
+                    # print('active sockets: ', self.sock_count)
+                    pass
+                # print('dir key: ', dir(key))
+
+                if mask == 1:
+                    try:
+                        c_sock, addr = key.accept()
+                        c_sock.setblocking(False)
+                        self.selector.register(c_sock, 5)
+                        self.sock_count += 1
+                    except OSError as err:
+                        if err.args[0] == 110:
+                            print('socket timeout')
+                        else:
+                            print('other error: ', err)
+
+                elif mask == 4:
+                    # buf = c_sock.recv(32)
+                    # print('received: ', mask)
+                    pass
+                elif mask == 5:
+                    # if buf is zero lenght, socket is closed? already by client
+                    print('message communicating...')
+                    # buf = key.recv(32)
+                    # print('received: ', buf)
+                    # key.send(buf)
+                    self.exchange_comm2(key)
+                    # print('client socket closing...')
+                    self.selector.unregister(key)
+                    key.close()
+                    self.sock_count -= 1
+
+    def exchange_comm2(self, socket_):
+        str1 = socket_.recv(32)
+        # print('str1: ', str1)
+        try:
+            a1 = self.sdata.deconstr(str1)
+        except Exception:
+            print('Error: incomplete message')
+        else:
+            cmd1 = a1[0]
+            chn = a1[1]
+            duties = a1[2]
+            print('cmd: ', cmd1, ' , chn: ', chn, ' , duties: ', duties)
+
+            if cmd1 == 1:
+                str2 = self.sdata.constr(3, 0, [self.duty0, self.duty1, 0, 0])
+                socket_.send(str2)  # b'0x30x00x00x00xff0xb20x7f0xdd')
+            elif cmd1 == 2:
+                self.duty0 = duties[0]
+                self.duty1 = duties[1]
+                # p0.duty(self.duty0 * 1023 // 100)
+                # p1.duty(self.duty1 * 1023 // 100)
+                p0.duty(self.duty_to_natural_levels(self.duty0))
+                p1.duty(self.duty_to_natural_levels(self.duty1))
+
+                str2 = self.sdata.constr(3, 0, [self.duty0, self.duty1, 0, 0])
+                socket_.send(str2)  # b'0x30x00x00x00xdd0xb20x7f0xaa')
+
+                # updates current state in startup.json
+                # saved_state = self.ini.read("startup.json")
+                # saved_state['duties'] = [self.duty0, self.duty1, 0, 0]
+                # self.ini.write('startup.json', saved_state)
+            elif cmd1 == 5:
+                print('success')
+                socket_.send(b'0x50x00x00x00x00x00x00x00')
+
+
 class network_conn:
     """
     manages network connectivity
@@ -341,7 +457,7 @@ class network_conn:
         checks network connection by pinging gateway
         uses uping.py
         """
-        print('is connected? (sta_if): ', self.sta_if.isconnected)
+        print('is connected? (sta_if): ', self.sta_if.isconnected())
         try:
             ping_status = uping.ping(self.gateway)
             if ping_status == (4, 4):
@@ -480,8 +596,8 @@ def main():
     p1.duty(math.trunc((math.pow(math.e, (startup_config['duties'][1] / 50 - 1))) * 435.2 - 160.3))
 
     # touch_reset check timer
-    timer1 = machine.Timer(-1)
-    timer1.init(period=1000, mode=machine.Timer.PERIODIC, callback=cb_reset_check)
+    # timer1 = machine.Timer(-1)
+    # timer1.init(period=1000, mode=machine.Timer.PERIODIC, callback=cb_reset_check)
 
     # starts server
     print('initiating network connection')
@@ -489,8 +605,10 @@ def main():
     conn = network_conn('conf.json')
     conn.connect2()
     global server1
-    server1 = socket_server(conn.ipaddr, conn)
-    server1.start(20)
+    # server1 = socket_server(conn.ipaddr, conn)
+    server1 = SocketServerNonblocking(conn.ipaddr, conn)
+    server1.write_duties(startup_config['duties'])
+    server1.start(config['timeout'])
     server1.listen_indef()
 
 
